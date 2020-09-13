@@ -25,6 +25,7 @@ public class LivrosResources {
         Livro l1 = new Livro("Rest aplicado");
         Livro l2 = new Livro("Git passo a passo");
         
+        
         Livro[] livros = {l1, l2};
         
         return Arrays.asList(livros);
