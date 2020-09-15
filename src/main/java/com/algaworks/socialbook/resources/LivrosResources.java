@@ -6,12 +6,12 @@
 package com.algaworks.socialbook.resources;
 
 import com.algaworks.socialbook.domain.Livro;
-import com.algaworks.socialbook.repository.LivrosRepository;
+import com.algaworks.socialbook.services.LivrosService;
+import com.algaworks.socialbook.services.exceptions.LivroNaoEncontradoException;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,16 +30,16 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 public class LivrosResources {
 
     @Autowired
-    private LivrosRepository livrosRepository;
+    private LivrosService livrosService;//camada que faz acesso ao repositorio
 
     @RequestMapping(method = RequestMethod.GET)//obtem o recurso
     public ResponseEntity<List<Livro>> listar() {
-        return ResponseEntity.status(HttpStatus.OK).body(livrosRepository.findAll());
+        return ResponseEntity.status(HttpStatus.OK).body(livrosService.listar());
     }
 
     @RequestMapping(method = RequestMethod.POST)//criação de novos recursos
     public ResponseEntity<Void> salvar(@RequestBody Livro livro) {
-        livro = livrosRepository.save(livro);
+        livro = livrosService.salvar(livro);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().
                 path("/{id}").buildAndExpand(livro.getId()).toUri();
 
@@ -48,29 +48,37 @@ public class LivrosResources {
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)//obtem o recurso de uma id especifica
     public ResponseEntity<?> buscar(@PathVariable("id") Long id) {
-        Optional<Livro> livro;
-        livro = livrosRepository.findById(id);
-        if (id == null) {//nao funcionou
+        Optional<Livro> livro = null;
+        try {
+            livro = livrosService.buscar(id);
+        } catch (LivroNaoEncontradoException e) {
             return ResponseEntity.notFound().build();
         }
+
         return ResponseEntity.status(HttpStatus.OK).body(livro);
 
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)//deleta um recurso atraves do id
-    public ResponseEntity <Void> deletar(@PathVariable("id") Long id) {
+    public ResponseEntity<Void> deletar(@PathVariable("id") Long id) {
 
         try {
-            livrosRepository.deleteById(id);
-        } catch (EmptyResultDataAccessException e) {
+            livrosService.deletar(id);
+        } catch (LivroNaoEncontradoException e) {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.noContent().build();
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT)//criação de novos recursos
-    public void atualizar(@RequestBody Livro livro, @PathVariable("id") Long id) {
+    public ResponseEntity<Void> atualizar(@RequestBody Livro livro, @PathVariable("id") Long id) {
         livro.setId(id);
-        livrosRepository.save(livro);
+        try {
+            livrosService.atualizar(livro);
+        } catch (LivroNaoEncontradoException e) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.noContent().build();
+
     }
 }
