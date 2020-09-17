@@ -48,7 +48,7 @@ public class LivrosResources {
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)//obtem o recurso de uma id especifica
     public ResponseEntity<?> buscar(@PathVariable("id") Long id) {
-        Optional<Livro> livro = null;
+        Livro livro = null;
 
         livro = livrosService.buscar(id);
         return ResponseEntity.status(HttpStatus.OK).body(livro);

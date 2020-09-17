@@ -27,8 +27,8 @@ public class LivrosService {
         return livrosRepository.findAll();
     }
 
-    public Optional<Livro> buscar(Long id) {
-        Optional<Livro> livro = livrosRepository.findById(id);
+    public Livro buscar(Long id) {
+        Livro livro = livrosRepository.findById(id).orElse(null);
 
         if (livro == null) {
             throw new LivroNaoEncontradoException("O livro nao pode ser encontrado.");
